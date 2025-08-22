@@ -7,4 +7,4 @@
 直接点这个链接  
 https://caliper.pages.dev/  
 
-  或者点右边的>>>
+  或者点右边的>>>Releases
