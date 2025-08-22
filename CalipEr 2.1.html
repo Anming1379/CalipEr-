@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalipEr 导航</title>
+    <style>
+        /* 重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 25px 15px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* 头部样式 */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            letter-spacing: 1px;
+        }
+
+        /* 标题部分 */
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h2 {
+            font-size: 1.8rem;
+            color: #334455;
+            margin-bottom: 5px;
+        }
+
+        .page-title p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* 导航容器样式 */
+        .nav-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        /* 导航卡片样式 */
+        .nav-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        /* 新增的彩色条样式 */
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            border-radius: 12px 0 0 12px;
+        }
+        /* 不同的颜色 */
+        .color-1::before { background-color: #3498db;
+        }
+        .color-2::before { background-color: #e74c3c;
+        }
+        .color-3::before { background-color: #f1c40f;
+        }
+        .color-4::before { background-color: #9b59b6;
+        }
+
+        .nav-card:hover {
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        /* 卡片内容样式 */
+        .card-title {
+            font-weight: 600;
+            color: #334455;
+            font-size: 1.3rem;
+            transition: color 0.2s;
+        }
+
+        .nav-card:hover .card-title {
+            color: #3498db;
+        }
+        
+        /* 分类部分样式 */
+        .category-section {
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+        }
+
+        .category-section h3 {
+            font-size: 1.5rem;
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #777;
+            font-size: 0.9rem;
+            padding: 15px 0;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-container {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            .nav-card {
+                height: 90px;
+            }
+            .card-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .nav-container {
+                grid-template-columns: 1fr;
+            }
+            .nav-card {
+                height: 80px;
+            }
+            .card-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>CalipEr</h1>
+    </header>
+    
+    <div class="page-title">
+        <h2>工具合集</h2>
+        <p>点击卡片打开相应工具</p>
+    </div>
+
+    <div class="category-section">
+        <h3>基础工具</h3>
+        <div class="nav-container">
+            <a href="other/介绍.html" class="nav-link" target="_blank">
+                <div class="nav-card color-1">
+                    <div class="card-title">CalipEr介绍</div>
+                </div>
+            </a>
+            
+            <a href="other/into.html" class="nav-link" target="_blank">
+                <div class="nav-card color-3">
+                    <div class="card-title">图片隐写</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="category-section">
+        <h3>媒体与创意</h3>
+        <div class="nav-container">
+            <a href="other/CalipEr Color.html" class="nav-link" target="_blank">
+                <div class="nav-card color-1">
+                    <div class="card-title">色卡生成器</div>
+                </div>
+            </a>
+
+            <a href="other/CalipEr draw.html" class="nav-link" target="_blank">
+                <div class="nav-card color-2">
+                    <div class="card-title">矢量画</div>
+                </div>
+            </a>
+
+            <a href="other/CalipEr Font.html" class="nav-link" target="_blank">
+                <div class="nav-card color-3">
+                    <div class="card-title">字体查看器</div>
+                </div>
+            </a>
+
+            <a href="other/CalipEr图片格式转换.html" class="nav-link" target="_blank">
+                <div class="nav-card color-4">
+                    <div class="card-title">图片格式转换</div>
+                </div>
+            </a>
+            
+            <a href="other/CalipEr html.html" class="nav-link" target="_blank">
+                <div class="nav-card color-1">
+                    <div class="card-title">HTML编辑器</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="category-section">
+        <h3>杂项</h3>
+        <div class="nav-container">
+            <a href="other/CalipEr QR & Barcode Generator.html" class="nav-link" target="_blank">
+                <div class="nav-card color-3">
+                    <div class="card-title">二维码/条形码</div>
+                </div>
+            </a>
+            
+            <a href="other/贪吃蛇.html" class="nav-link" target="_blank">
+                <div class="nav-card color-4">
+                    <div class="card-title">简单贪吃蛇</div>
+                </div>
+            </a>
+            
+            <a href="other/Caliper An-English.html" class="nav-link" target="_blank">
+                <div class="nav-card color-1">
+                    <div class="card-title">桉语加密器</div>
+                </div>
+            </a>
+
+            <a href="other/扫雷.html" class="nav-link" target="_blank">
+                <div class="nav-card color-2">
+                    <div class="card-title">扫雷</div>
+                </div>
+            </a>
+            
+            <a href="other/打字机.html" class="nav-link" target="_blank">
+                <div class="nav-card color-4">
+                    <div class="card-title">打字机</div>
+                </div>
+            </a>
+            
+            <!-- 新增的卡片 -->
+            <a href="other/2048.html" class="nav-link" target="_blank">
+                <div class="nav-card color-1">
+                    <div class="card-title">2048</div>
+                </div>
+            </a>
+            
+            <a href="other/飞机大战.html" class="nav-link" target="_blank">
+                <div class="nav-card color-2">
+                    <div class="card-title">飞机大战</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>- by Anming_cat -</p>
+    </footer>
+</body>
+</html>
