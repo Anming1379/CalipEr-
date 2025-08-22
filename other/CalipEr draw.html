@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CalipEr SVG</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+    background: #f5f5f5;
+  }
+  #left { flex: 1;
+    display: flex; flex-direction: column; position: relative; }
+  #toolbarToggle, #layersToggle, #undoBtn, #redoBtn, #shapeBtn {
+    position: absolute;
+    top: 12px; z-index: 10;
+    padding: 8px 12px; border-radius: 10px; background: #ffffffcc;
+    border: none; cursor: pointer; font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.25s ease;
+  }
+  #toolbarToggle:hover, #layersToggle:hover, #undoBtn:hover, #redoBtn:hover, #shapeBtn:hover { background: #ffffff;
+    transform: scale(1.05); }
+  #toolbarToggle { left: 12px; }
+  #undoBtn { left: 100px; }
+  #redoBtn { left: 180px;
+    }
+  #shapeBtn { left: 260px; }
+
+  #shapeMenu {
+    position: absolute; top: 50px; left: 260px;
+    background: rgba(255,255,255,0.95);
+    padding: 6px; border-radius: 12px;
+    display: none; flex-direction: column; gap: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 11;
+    }
+
+  #layersToggle { right: 12px; left: auto; }
+
+  #toolbar {
+    position: absolute; top: 50px;
+    left: 12px;
+    background: rgba(255,255,255,0.95);
+    padding: 8px; border-radius: 12px;
+    display: flex; flex-wrap: wrap; gap: 6px; width: 340px;
+    max-height: 70%; overflow: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    opacity: 0; transform: translateY(-10px); transition: all 0.3s ease;
+    z-index: 9; pointer-events: none;
+    }
+  #toolbar.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  #textProps {
+    display: none;
+    flex-direction: column; gap: 4px; margin-top: 6px;
+    width: 100%;
+    }
+
+  button, input[type=color], input[type=range], input[type=number], input[type=text], select, textarea {
+    padding: 6px 10px;
+    border-radius: 8px; font-size: 14px;
+    border: 1px solid #ccc; background: #fff; cursor: pointer;
+    transition: all 0.25s ease;
+    touch-action: manipulation;
+    }
+  button:hover { background: #e6f0ff; transform: scale(1.05); }
+  label { display: flex; align-items: center; gap: 4px;
+    }
+
+  canvas {
+    border-radius: 8px; flex: 1; width: 100%; height: 100%;
+    /* 添加 touch-action 来防止浏览器默认滚动 */
+    touch-action: none;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+    }
+
+  #layers {
+    position: absolute; top: 50px; right: 12px;
+    background: rgba(255,255,255,0.95);
+    padding: 8px; border-radius: 12px;
+    max-height: 60%; overflow: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    opacity: 0; transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 9; width: 240px; pointer-events: none;
+    }
+  #layers.show { opacity: 1; transform: translateY(0); pointer-events: auto;
+    }
+
+  .layer {
+    padding: 6px; border-radius: 8px; display: flex; align-items: center;
+    gap: 8px; flex-wrap: wrap;
+    transition: all 0.2s ease;
+    }
+  .layer:hover { background: #f0f8ff; transform: translateX(3px); }
+  .layer.active { background: #cce5ff;
+    }
+
+  .thumb {
+    width: 32px; height: 32px; border-radius: 6px;
+    border: 1px solid #aaa; object-fit: contain;
+    flex-shrink: 0;
+    }
+  .opacitySlider { flex: 1; margin-left: 4px;
+    }
+  #layers > div:last-child button {
+    flex: 1; padding: 6px; font-size: 12px; margin: 2px 0;
+    border-radius: 8px; background: #fff; border: 1px solid #ccc;
+    cursor: pointer; transition: all 0.25s ease;
+    }
+  #layers > div:last-child button:hover { background: #e6f0ff; transform: scale(1.05);
+    }
+  
+  .text-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+    }
+  
+  .text-control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
+  
+  .text-control-label {
+    min-width: 70px;
+    font-size: 13px;
+    }
+  
+  .align-buttons {
+    display: flex;
+    gap: 4px;
+    }
+  
+  .align-btn {
+    flex: 1;
+    padding: 4px;
+    font-size: 12px;
+    }
+  
+  #textContent {
+    width: 100%;
+    min-height: 60px;
+    resize: vertical;
+    }
+  
+  .range-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    }
+  
+  .range-container input[type="range"] {
+    flex: 1;
+    }
+  
+  .range-value {
+    min-width: 40px;
+    text-align: center;
+    font-size: 13px;
+    }
+
+  .fill-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    }
+
+  .fill-toggle-label {
+    font-size: 13px;
+    white-space: nowrap;
+    }
+
+  /* 移动设备适配 */
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+    }
+    
+    #toolbarToggle, #layersToggle, #undoBtn, #redoBtn, #shapeBtn {
+      padding: 8px 12px;
+      /* 保持按钮大小不变 */
+      top: 8px;
+      /* 调整顶部间距 */
+    }
+    
+    #toolbarToggle { left: 8px;
+    }
+    #undoBtn { left: 90px; }
+    #redoBtn { left: 170px;
+    }
+    #shapeBtn { left: 250px; }
+    #layersToggle { right: 8px;
+    }
+    
+    #toolbar {
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      width: 90%;
+      max-width: 340px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    
+    #toolbar.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    #layers {
+      top: 55px;
+      right: 50%;
+      transform: translateX(50%) translateY(-10px);
+      width: 80%;
+      max-width: 240px;
+      max-height: 50vh;
+    }
+    
+    #layers.show {
+      transform: translateX(50%) translateY(0);
+    }
+    
+    #shapeMenu {
+      top: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    #left {
+      height: 100%;
+    }
+    
+    canvas {
+      height: calc(100% - 60px);
+      margin-top: 55px;
+    }
+    
+    /* 改进移动设备上的滚动 */
+    #toolbar, #layers {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #toolbarToggle, #layersToggle, #undoBtn, #redoBtn, #shapeBtn {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    
+    #toolbarToggle { left: 5px;
+    }
+    #undoBtn { left: 80px; }
+    #redoBtn { left: 150px;
+    }
+    #shapeBtn { left: 220px; }
+    #layersToggle { right: 5px;
+    }
+    
+    #toolbar, #layers {
+      font-size: 12px;
+    }
+    
+    button, input[type=color], input[type=range], input[type=number], input[type=text], select, textarea {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+  }
+
+  /* 防止移动设备上的长按菜单 */
+  .no-long-press {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div id="left">
+  <button id="toolbarToggle" class="no-long-press">工具栏</button>
+  <button id="layersToggle" class="no-long-press">图层</button>
+  <button id="undoBtn" class="no-long-press">撤销</button>
+  <button id="redoBtn" class="no-long-press">重做</button>
+  <button id="shapeBtn" class="no-long-press">形状</button>
+  <div id="shapeMenu" class="no-long-press">
+    <button onclick="setShape('line')">直线</button>
+    <button onclick="setShape('rect')">矩形</button>
+    <button onclick="setShape('circle')">圆形</button>
+    <button onclick="setShape('text')">文本</button>
+  </div>
+  <div id="toolbar" class="no-long-press">
+    <button onclick="setDrawingMode(true)">钢笔</button>
+    <button onclick="setDrawingMode(false)">选择</button>
+    <label>描边颜色: <input type="color" id="colorPicker" value="#000000"></label>
+    <label>描边粗细: <input type="range" id="widthSlider" min="1" max="20" value="2"></label>
+    
+    <label>填充颜色: <input type="color" id="fillColorPicker" value="#ffffff"></label>
+    <div class="fill-toggle">
+      <span class="fill-toggle-label">填充:</span>
+      <input type="checkbox" id="fillToggle" checked>
+    </div>
+    
+    <button onclick="deleteSelected()">删除</button>
+    <button onclick="clearCanvas()">清空</button>
+    <button onclick="exportSVG()">SVG</button>
+    
+    <label>
+      分辨率:
+      <select id="resolutionSelect">
+        <option value="1">1x</option>
+        <option value="2">2x</option>
+        <option value="4">4x</option>
+      </select>
+    </label>
+    
+    <button onclick="exportPNG()">PNG</button>
+    <button onclick="exportWEBP()">WebP</button>
+    <input type="file" id="importSVG" accept=".svg" style="display:none">
+    <button onclick="document.getElementById('importSVG').click()">导入SVG</button>
+
+    <div id="textProps">
+      <label>文本内容: <textarea id="textContent" placeholder="输入文本内容（支持换行）"></textarea></label>
+      
+      <div class="text-control-group">
+        <div class="text-control-row">
+          <span class="text-control-label">字体:</span>
+          <select id="textFontFamily">
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Palatino">Palatino</option>
+            <option value="Garamond">Garamond</option>
+            <option value="Comic Sans MS">Comic Sans MS</option>
+            <option value="Impact">Impact</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+            <option value="SimHei">黑体</option>
+            <option value="SimSun">宋体</option>
+            <option value="KaiTi">楷体</option>
+            <option value="FangSong">仿宋</option>
+            <option value="Microsoft YaHei">微软雅黑</option>
+          </select>
+        </div>
+        
+        <div class="text-control-row">
+          <span class="text-control-label">字重:</span>
+          <select id="textFontWeight">
+            <option value="normal">常规</option>
+            <option value="bold">粗体</option>
+            <option value="lighter">细体</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="300">300</option>
+            <option value="400">400</option>
+            <option value="500">500</option>
+            <option value="600">600</option>
+            <option value="700">700</option>
+            <option value="800">800</option>
+            <option value="900">900</option>
+          </select>
+        </div>
+        
+        <div class="text-control-row">
+          <span class="text-control-label">字体样式:</span>
+          <select id="textFontStyle">
+            <option value="normal">正常</option>
+            <option value="italic">斜体</option>
+            <option value="oblique">倾斜</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="text-control-group">
+        <div class="text-control-row">
+          <span class="text-control-label">字体大小:</span>
+          <input type="number" id="textFontSize" min="8" max="200" value="24">
+        </div>
+        
+        <div class="text-control-row">
+          <span class="text-control-label">字间距:</span>
+          <div class="range-container">
+            <input type="range" id="textCharSpacing" min="-500" max="3000" step="50" value="0">
+            <span class="range-value" id="charSpacingValue">0</span>
+          </div>
+        </div>
+        
+        <div class="text-control-row">
+          <span class="text-control-label">行间距:</span>
+          <div class="range-container">
+            <input type="range" id="textLineHeight" min="0.5" max="3" step="0.02" value="1">
+            <span class="range-value" id="lineHeightValue">1.0</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-control-group">
+        <div class="text-control-row">
+          <span class="text-control-label">对齐方式:</span>
+          <div class="align-buttons">
+            <button class="align-btn" onclick="setTextAlign('left')">左</button>
+            <button class="align-btn" onclick="setTextAlign('center')">中</button>
+            <button class="align-btn" onclick="setTextAlign('right')">右</button>
+            <button class="align-btn" onclick="setTextAlign('justify')">两端</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <canvas id="canvas" width="800" height="600"></canvas>
+
+  <div id="layers" class="no-long-press">
+    <h3>图层</h3>
+    <div id="layerList" style="max-height:300px;
+overflow:auto;"></div>
+    <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+      <button onclick="bringForward()">上移</button>
+      <button onclick="sendBackwards()">下移</button>
+      <button onclick="bringToFront()">置顶</button>
+      <button onclick="sendToBack()">置底</button>
+      <button onclick="deleteSelected()">删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = new fabric.Canvas('canvas', {
+  selection: true, 
+  preserveObjectStacking: true,
+  isDrawingMode: true  // 初始化为绘图模式
+});
+
+// 新增的触摸事件处理，专门用于阻止浏览器默认行为
+function preventBrowserScroll(e) {
+    // 只对画布区域的触摸事件阻止默认行为
+    if (e.target === canvas.upperCanvasEl) {
+        e.preventDefault();
+    }
+}
+window.addEventListener('touchstart', preventBrowserScroll, { passive: false });
+window.addEventListener('touchmove', preventBrowserScroll, { passive: false });
+
+
+let redoStack = [], currentColor="#000000", currentWidth=2, currentShape=null, currentFillColor="#ffffff", useFill=true;
+// 新增的变量，用于控制导出分辨率
+let exportMultiplier = 1;
+
+const colorPicker=document.getElementById("colorPicker");
+const widthSlider=document.getElementById("widthSlider");
+const fillColorPicker=document.getElementById("fillColorPicker");
+const fillToggle=document.getElementById("fillToggle");
+const layerList=document.getElementById("layerList");
+const toolbar=document.getElementById("toolbar");
+const layers=document.getElementById("layers");
+const importSVG=document.getElementById("importSVG");
+const shapeBtn=document.getElementById("shapeBtn");
+const shapeMenu=document.getElementById("shapeMenu");
+// 新增的UI元素
+const resolutionSelect = document.getElementById("resolutionSelect");
+
+const textPropsPanel = document.getElementById("textProps");
+const textContentInput = document.getElementById("textContent");
+const textFontSizeInput = document.getElementById("textFontSize");
+const textFontFamilySelect = document.getElementById("textFontFamily");
+const textFontWeightSelect = document.getElementById("textFontWeight");
+const textFontStyleSelect = document.getElementById("textFontStyle");
+const textCharSpacingInput = document.getElementById("textCharSpacing");
+const textLineHeightInput = document.getElementById("textLineHeight");
+const charSpacingValue = document.getElementById("charSpacingValue");
+const lineHeightValue = document.getElementById("lineHeightValue");
+
+document.getElementById("toolbarToggle").onclick=()=>{ toolbar.classList.toggle("show"); }
+document.getElementById("layersToggle").onclick=()=>{ layers.classList.toggle("show"); }
+document.getElementById("undoBtn").onclick=()=>{ undo(); }
+document.getElementById("redoBtn").onclick=()=>{ redo();
+}
+shapeBtn.onclick=()=>{ shapeMenu.style.display = shapeMenu.style.display==='flex'?'none':'flex'; }
+
+// 点击其他地方关闭形状菜单
+document.addEventListener('click', (e) => {
+  if (!shapeBtn.contains(e.target) && !shapeMenu.contains(e.target)) {
+    shapeMenu.style.display = 'none';
+  }
+});
+// 点击其他地方关闭工具栏和图层
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#toolbar') && !e.target.closest('#toolbarToggle') && toolbar.classList.contains('show')) {
+    toolbar.classList.remove('show');
+  }
+  if (!e.target.closest('#layers') && !e.target.closest('#layersToggle') && layers.classList.contains('show')) {
+    layers.classList.remove('show');
+  }
+});
+colorPicker.addEventListener("input",(e)=>{
+  currentColor=e.target.value; 
+  if(canvas.freeDrawingBrush) canvas.freeDrawingBrush.color=currentColor;
+  canvas.getActiveObjects().forEach(obj=>{
+    if(obj.type==="text" || obj.type==="i-text") {
+      obj.set({fill: currentColor});
+    } else {
+      obj.set({stroke:currentColor});
+    }
+  });
+  canvas.requestRenderAll(); 
+  refreshLayers();
+});
+widthSlider.addEventListener("input",(e)=>{
+  currentWidth=parseInt(e.target.value,10); 
+  if(canvas.freeDrawingBrush) canvas.freeDrawingBrush.width=currentWidth;
+  canvas.getActiveObjects().forEach(obj=>{
+    if(obj.type!=="text" && obj.type!=="i-text") {
+      obj.set({strokeWidth:currentWidth});
+    }
+  });
+  canvas.requestRenderAll(); 
+  refreshLayers();
+});
+// 填充颜色选择器事件
+fillColorPicker.addEventListener("input",(e)=>{
+  currentFillColor=e.target.value; 
+  canvas.getActiveObjects().forEach(obj=>{
+    if(obj.type!=="text" && obj.type!=="i-text" && obj.type!=="line") {
+      obj.set({fill: currentFillColor});
+    }
+  });
+  canvas.requestRenderAll(); 
+  refreshLayers();
+});
+// 填充切换事件
+fillToggle.addEventListener("change",(e)=>{
+  useFill = e.target.checked;
+  // 更新当前选中对象的填充状态
+  canvas.getActiveObjects().forEach(obj=>{
+    if(obj.type!=="text" && obj.type!=="i-text" && obj.type!=="line") {
+      obj.set({fill: useFill ? currentFillColor : 'transparent'});
+    }
+  });
+  canvas.requestRenderAll(); 
+  refreshLayers();
+});
+// 新增分辨率选择器的事件监听
+resolutionSelect.addEventListener("change", (e) => {
+  exportMultiplier = parseFloat(e.target.value);
+});
+
+function setDrawingMode(enabled){
+  canvas.isDrawingMode=enabled; 
+  currentShape=null;
+  if(enabled){ 
+    const brush=new fabric.PencilBrush(canvas); 
+    brush.color=currentColor; 
+    brush.width=currentWidth; 
+    canvas.freeDrawingBrush=brush; 
+  } 
+}
+// 初始化绘图模式
+setDrawingMode(true);
+function deleteSelected(){ canvas.getActiveObjects().forEach(o=>canvas.remove(o)); canvas.discardActiveObject(); canvas.requestRenderAll(); refreshLayers(); saveToLocal(); }
+function undo(){ if(canvas._objects.length>0){ redoStack.push(canvas._objects.pop()); canvas.requestRenderAll(); refreshLayers(); saveToLocal(); } }
+function redo(){ if(redoStack.length>0){ canvas.add(redoStack.pop()); canvas.requestRenderAll(); refreshLayers();
+saveToLocal(); } }
+function clearCanvas(){ canvas.clear(); redoStack=[]; refreshLayers(); saveToLocal(); }
+function exportSVG(){ const svg=canvas.toSVG(); const blob=new Blob([svg],{type:"image/svg+xml"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="drawing.svg"; a.click();
+}
+// 修改后的 exportPNG 函数
+function exportPNG(){ 
+  const dataURL=canvas.toDataURL({
+    format:"png", 
+    multiplier: exportMultiplier
+  }); 
+  const a=document.createElement("a"); 
+  a.href=dataURL; 
+  a.download="drawing.png"; 
+  a.click(); 
+}
+// 修改后的 exportWEBP 函数
+function exportWEBP(){ 
+  const dataURL=canvas.toDataURL({
+    format:"webp", 
+    quality:1.0, 
+    multiplier: exportMultiplier
+  }); 
+  const a=document.createElement("a"); 
+  a.href=dataURL; 
+  a.download="drawing.webp"; 
+  a.click(); 
+}
+
+importSVG.addEventListener("change",(e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(f){
+    const svgStr=f.target.result;
+    fabric.loadSVGFromString(svgStr,(objects,options)=>{
+      const obj=fabric.util.groupSVGElements(objects,options);
+      canvas.add(obj);
+      canvas.centerObject(obj);
+      obj.setCoords();
+      canvas.setActiveObject(obj);
+      canvas.requestRenderAll();
+      refreshLayers();
+      saveToLocal();
+    });
+  };
+  reader.readAsText(file);
+});
+function refreshLayers(){
+  layerList.innerHTML="";
+  canvas._objects.forEach((obj,idx)=>{
+    const div=document.createElement("div");
+    div.className="layer"; 
+    if(canvas.getActiveObjects().includes(obj)) div.classList.add("active");
+
+    const img=document.createElement("img"); 
+    img.src=obj.toDataURL({format:"png",multiplier:4}); 
+    img.className="thumb";
+
+    const name=document.createElement("span"); 
+    name.textContent="图层 "+(idx+1);
+
+    const slider=document.createElement("input");
+    slider.type="range";
+    slider.min=0; slider.max=1; slider.step=0.01;
+    slider.value=obj.opacity ?? 1;
+    slider.className="opacitySlider";
+    slider.oninput=(e)=>{
+      obj.set({opacity:parseFloat(e.target.value)});
+      canvas.requestRenderAll();
+      saveToLocal();
+    };
+
+    
+div.appendChild(img); 
+    div.appendChild(name);
+    div.appendChild(slider);
+
+    div.onclick=()=>{ canvas.setActiveObject(obj); canvas.requestRenderAll(); refreshLayers(); };
+
+    layerList.prepend(div);
+  });
+}
+
+function bringForward(){ canvas.getActiveObjects().forEach(o=>canvas.bringForward(o)); canvas.requestRenderAll(); refreshLayers(); saveToLocal(); }
+function sendBackwards(){ canvas.getActiveObjects().forEach(o=>canvas.sendBackwards(o)); canvas.requestRenderAll(); refreshLayers(); saveToLocal(); }
+function bringToFront(){ canvas.getActiveObjects().forEach(o=>canvas.bringToFront(o)); canvas.requestRenderAll(); refreshLayers(); saveToLocal();
+}
+function sendToBack(){ canvas.getActiveObjects().forEach(o=>canvas.sendToBack(o)); canvas.requestRenderAll(); refreshLayers(); saveToLocal(); }
+
+canvas.on("object:added",()=>{ refreshLayers(); saveToLocal(); });
+canvas.on("object:removed",()=>{ refreshLayers(); saveToLocal(); });
+canvas.on("selection:updated",updateTextProps);
+canvas.on("selection:created",updateTextProps);
+canvas.on("selection:cleared",()=>{ textPropsPanel.style.display='none'; });
+function updateTextProps(){
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    textPropsPanel.style.display='flex';
+    textContentInput.value = active.text;
+    textFontSizeInput.value = active.fontSize;
+    textFontFamilySelect.value = active.fontFamily || 'Arial';
+    textFontWeightSelect.value = active.fontWeight || 'normal';
+    textFontStyleSelect.value = active.fontStyle || 'normal';
+    textCharSpacingInput.value = active.charSpacing || 0;
+    textLineHeightInput.value = active.lineHeight || 1;
+    charSpacingValue.textContent = active.charSpacing || 0;
+    lineHeightValue.textContent = active.lineHeight || 1;
+  } else {
+    textPropsPanel.style.display='none';
+  }
+}
+
+textContentInput.addEventListener("input",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.text = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textFontSizeInput.addEventListener("input",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.fontSize = parseInt(e.target.value,10);
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textFontFamilySelect.addEventListener("change",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.fontFamily = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textFontWeightSelect.addEventListener("change",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.fontWeight = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textFontStyleSelect.addEventListener("change",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.fontStyle = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textCharSpacingInput.addEventListener("input",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.charSpacing = parseInt(e.target.value,10);
+    charSpacingValue.textContent = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+textLineHeightInput.addEventListener("input",(e)=>{
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.lineHeight = parseFloat(e.target.value);
+    lineHeightValue.textContent = e.target.value;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+});
+function setTextAlign(align) {
+  const active = canvas.getActiveObject();
+  if(active && (active.type==="i-text" || active.type==="text")){
+    active.textAlign = align;
+    canvas.requestRenderAll();
+    saveToLocal();
+  }
+}
+
+function resizeCanvas(){ 
+  canvas.setWidth(window.innerWidth); 
+  canvas.setHeight(window.innerHeight); 
+  canvas.requestRenderAll(); 
+}
+window.addEventListener("resize",resizeCanvas); 
+resizeCanvas();
+
+function saveToLocal() {
+  localStorage.setItem("fabricCanvasData", JSON.stringify(canvas.toJSON()));
+}
+
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem("fabricCanvasData");
+  if (saved) {
+    canvas.loadFromJSON(saved, () => {
+      canvas.requestRenderAll();
+      refreshLayers();
+    });
+  }
+});
+
+window.onbeforeunload = function() {
+  if (canvas._objects.length > 0) {
+    return "你的画布可能没保存哦，确定要离开吗？";
+  }
+};
+/* ========== 形状与文本工具 ========= */
+function setShape(shape){
+  currentShape = shape;
+  canvas.isDrawingMode=false;
+  shapeMenu.style.display='none';
+}
+
+let tempShape = null;
+canvas.on('mouse:down', function(o){
+  if(!currentShape) return;
+  const pointer = canvas.getPointer(o.e);
+  if(currentShape==='line'){
+    tempShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], { 
+      stroke: currentColor, 
+      strokeWidth: currentWidth 
+    });
+    canvas.add(tempShape);
+  } else if(currentShape==='rect'){
+    tempShape = new fabric.Rect({ 
+      left: pointer.x, 
+      top: pointer.y, 
+      width:0, 
+      height:0, 
+      fill: useFill ? currentFillColor : 
+'transparent', 
+      stroke: currentColor, 
+      strokeWidth: currentWidth 
+    });
+    canvas.add(tempShape);
+  } else if(currentShape==='circle'){
+    tempShape = new fabric.Circle({ 
+      left: pointer.x, 
+      top: pointer.y, 
+      radius:0, 
+      fill: useFill ? currentFillColor : 'transparent', 
+      stroke: currentColor, 
+      strokeWidth: currentWidth 
+    });
+    canvas.add(tempShape);
+  } else 
+if(currentShape==='text'){
+    const text = new fabric.IText("请输入文字\n支持多行文本",{ 
+      left:pointer.x, 
+      top:pointer.y, 
+      fill:currentColor, 
+      fontSize:24, 
+      fontFamily:'Arial',
+      fontWeight: textFontWeightSelect.value,
+      fontStyle: textFontStyleSelect.value,
+      charSpacing: parseInt(textCharSpacingInput.value, 10) ||
+0,
+      lineHeight: parseFloat(textLineHeightInput.value) || 1
+    });
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    canvas.requestRenderAll();
+    updateTextProps();
+    currentShape=null;
+    setDrawingMode(false);
+}
+});
+
+canvas.on('mouse:move', function(o){
+  if(!tempShape) return;
+  const pointer = canvas.getPointer(o.e);
+  if(currentShape==='line') tempShape.set({ x2:pointer.x, y2:pointer.y });
+  else if(currentShape==='rect') tempShape.set({ width: pointer.x-tempShape.left, height: pointer.y-tempShape.top });
+  else if(currentShape==='circle') tempShape.set({ radius: Math.sqrt(Math.pow(pointer.x-tempShape.left,2)+Math.pow(pointer.y-tempShape.top,2)) });
+  canvas.requestRenderAll();
+});
+canvas.on('mouse:up', function(o){
+  tempShape=null;
+});
+
+// 重新添加fabric的touch事件监听器，确保它能获得完整的数据
+canvas.on('touch:start', function(o) {
+  if (canvas.isDrawingMode) {
+    o.e.preventDefault(); // 确保绘图模式下不滚动
+  }
+});
+
+canvas.on('touch:move', function(o) {
+  if (canvas.isDrawingMode) {
+    o.e.preventDefault(); // 确保绘图模式下不滚动
+  }
+});
+</script>
+</body>
+</html>

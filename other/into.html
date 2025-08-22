@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件处理工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .file-input {
+            margin-bottom: 15px;
+        }
+        .file-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .file-input input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .hint {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .download-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .download-link a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .download-link a:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件处理工具</h1>
+        <div class="tab-container">
+            <div class="tab active" data-tab="merge">文件合并工具</div>
+            <div class="tab" data-tab="extract">图片提取工具</div>
+        </div>
+        <div id="mergeTab" class="tab-content active">
+            <div class="hint">此工具可以将图片文件和压缩文件合并为一个图片文件。</div>
+            <div class="file-input">
+                <label for="imageFile">选择图片文件 (PNG, JPG, JPEG, WebP)</label>
+                <input type="file" id="imageFile" accept="image/png, image/jpeg, image/webp" />
+            </div>
+            <div class="file-input">
+                <label for="archiveFile">选择压缩文件 (ZIP, RAR)</label>
+                <input type="file" id="archiveFile" accept=".zip, .rar" />
+            </div>
+            <button id="mergeButton">合并文件</button>
+            <div class="download-link" id="downloadLinkContainerMerge">
+                <a id="downloadLinkMerge" style="display: none;">下载合并后的文件</a>
+            </div>
+        </div>
+        <div id="extractTab" class="tab-content">
+            <div class="hint">此工具可以从合并后的图片文件中提取出压缩文件。</div>
+            <div class="file-input">
+                <label for="mergedFile">选择合并后的图片文件</label>
+                <input type="file" id="mergedFile" accept="image/png, image/jpeg, image/webp" />
+            </div>
+            <button id="extractButton">提取压缩包</button>
+            <div class="download-link" id="downloadLinkContainerExtract">
+                <a id="downloadLinkExtract" style="display: none;">下载提取的压缩包</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有标签和内容的active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加active类到当前标签和对应的内容
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // 文件合并功能
+        document.getElementById('mergeButton').addEventListener('click', async () => {
+            const imageFile = document.getElementById('imageFile').files[0];
+            const archiveFile = document.getElementById('archiveFile').files[0];
+
+            if (!imageFile || !archiveFile) {
+                alert('请先选择图片文件和压缩文件');
+                return;
+            }
+
+            try {
+                const imageArrayBuffer = await imageFile.arrayBuffer();
+                const imageData = new Uint8Array(imageArrayBuffer);
+
+                const archiveArrayBuffer = await archiveFile.arrayBuffer();
+                const archiveData = new Uint8Array(archiveArrayBuffer);
+
+                const combinedData = new Uint8Array(imageData.length + archiveData.length);
+                combinedData.set(imageData);
+                combinedData.set(archiveData, imageData.length);
+
+                const blob = new Blob([combinedData], { type: 'application/octet-binary' });
+
+                const downloadLink = document.getElementById('downloadLinkMerge');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = 'merged_file.png';
+                downloadLink.style.display = 'inline-block';
+                document.getElementById('downloadLinkContainerMerge').style.display = 'block';
+
+                downloadLink.click();
+
+                URL.revokeObjectURL(downloadLink.href);
+            } catch (error) {
+                console.error('发生错误:', error);
+                alert('文件合并失败');
+            }
+        });
+
+        // 图片提取功能
+        document.getElementById('extractButton').addEventListener('click', async () => {
+            const mergedFile = document.getElementById('mergedFile').files[0];
+
+            if (!mergedFile) {
+                alert('请先选择合并后的图片文件');
+                return;
+            }
+
+            try {
+                const mergedArrayBuffer = await mergedFile.arrayBuffer();
+                const mergedData = new Uint8Array(mergedArrayBuffer);
+
+                let archiveStartIndex = -1;
+                let archiveType = '';
+
+                // 检查ZIP文件头
+                for (let i = 0; i < mergedData.length - 4; i++) {
+                    if (mergedData[i] === 0x50 && mergedData[i+1] === 0x4B && mergedData[i+2] === 0x03 && mergedData[i+3] === 0x04) {
+                        archiveStartIndex = i;
+                        archiveType = 'zip';
+                        break;
+                    }
+                }
+
+                // 如果没有找到ZIP文件头，检查RAR文件头
+                if (archiveStartIndex === -1) {
+                    for (let i = 0; i < mergedData.length - 3; i++) {
+                        if (mergedData[i] === 0x52 && mergedData[i+1] === 0x41 && mergedData[i+2] === 0x52 && mergedData[i+3] === 0x21) {
+                            archiveStartIndex = i;
+                            archiveType = 'rar';
+                            break;
+                        }
+                    }
+                }
+
+                if (archiveStartIndex === -1) {
+                    alert('未检测到有效的压缩文件头');
+                    return;
+                }
+
+                const archiveData = mergedData.subarray(archiveStartIndex);
+
+                let blob;
+                if (archiveType === 'zip') {
+                    blob = new Blob([archiveData], { type: 'application/zip' });
+                } else {
+                    blob = new Blob([archiveData], { type: 'application/x-rar-compressed' });
+                }
+
+                const downloadLink = document.getElementById('downloadLinkExtract');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = `extracted_archive.${archiveType}`;
+                downloadLink.style.display = 'inline-block';
+                document.getElementById('downloadLinkContainerExtract').style.display = 'block';
+
+                downloadLink.click();
+
+                URL.revokeObjectURL(downloadLink.href);
+            } catch (error) {
+                console.error('发生错误:', error);
+                alert('提取失败');
+            }
+        });
+    </script>
+</body>
+</html>

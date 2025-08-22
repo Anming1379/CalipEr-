@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桉英互译</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .panel {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 20px;
+        }
+        p {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            padding: 10px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex-grow: 1;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .mapping-table-container {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            list-style: none;
+            padding: 0;
+        }
+        .mapping-table-container li {
+            padding: 5px 0;
+            font-family: monospace;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #ecf0f1;
+        }
+        .mapping-table-container li b {
+            font-weight: normal;
+            color: #2980b9;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            .mapping-table-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>桉语加密器</h1>
+
+    <div class="panel">
+        <h2>这里输入文本喵~</h2>
+        <p>输入英文，然后点击 “加密” 或输入因纽特语符号，然后点击 “解密”。(by AnmingCat)</p>
+        <textarea id="mainInput" placeholder="输入一些文本吧!..."></textarea>
+        <div class="controls">
+            <button onclick="encryptText()">加密</button>
+            <button onclick="decryptText()">解密</button>
+        </div>
+        <h3>结果：</h3>
+        <textarea id="mainOutput" readonly></textarea>
+    </div>
+
+    <div class="panel">
+        <h2>桉语映射表</h2>
+        <p>桉的专属加密密钥，方便你随时查阅！(实际使用符号为因纽特语)</p>
+        
+        <h3>大写字母</h3>
+        <ul class="mapping-table-container">
+            <li><b>A</b> ᐊ</li><li><b>B</b> ᐱ</li><li><b>C</b> ᐳ</li><li><b>D</b> ᑕ</li><li><b>E</b> ᑎ</li><li><b>F</b> ᑐ</li><li><b>G</b> ᑳ</li><li><b>H</b> ᑭ</li><li><b>I</b> ᑯ</li><li><b>J</b> ᖀ</li><li><b>K</b> ᖂ</li><li><b>L</b> ᖄ</li><li><b>M</b> ᕒ</li><li><b>N</b> ᐹ</li><li><b>O</b> ᐯ</li><li><b>P</b> ᐴ</li><li><b>Q</b> ᐶ</li><li><b>R</b> ᒫ</li><li><b>S</b> ᒦ</li><li><b>T</b> ᒨ</li><li><b>U</b> ᒪ</li><li><b>V</b> ᒥ</li><li><b>W</b> ᒧ</li><li><b>X</b> ᓇ</li><li><b>Y</b> ᓂ</li><li><b>Z</b> ᓄ</li>
+        </ul>
+
+        <h3>小写字母</h3>
+        <ul class="mapping-table-container">
+            <li><b>a</b> ᕿ</li><li><b>b</b> ᖁ</li><li><b>c</b> ᖃ</li><li><b>d</b> ᒐ</li><li><b>e</b> ᒋ</li><li><b>f</b> ᒍ</li><li><b>g</b> ᔮ</li><li><b>h</b> ᔨ</li><li><b>i</b> ᔪ</li><li><b>j</b> ᓈ</li><li><b>k</b> ᓃ</li><li><b>l</b> ᓅ</li><li><b>m</b> ᖎ</li><li><b>n</b> ᖒ</li><li><b>o</b> ᖠ</li><li><b>p</b> ᑌ</li><li><b>q</b> ᒉ</li><li><b>r</b> ᒌ</li><li><b>s</b> ᒎ</li><li><b>t</b> ᔅ</li><li><b>u</b> ᓰ</li><li><b>v</b> ᓲ</li><li><b>w</b> ᓴ</li><li><b>x</b> ᓯ</li><li><b>y</b> ᓱ</li><li><b>z</b> ᑰ</li>
+        </ul>
+
+        <h3>数字与标点</h3>
+        <ul class="mapping-table-container">
+            <li><b>0</b> ᑑ</li><li><b>1</b> ᐦ</li><li><b>2</b> ᐖ</li><li><b>3</b> ᐠ</li><li><b>4</b> ᐟ</li><li><b>5</b> ᐡ</li><li><b>6</b> ᐢ</li><li><b>7</b> ᐣ</li><li><b>8</b> ᐨ</li><li><b>9</b> ᐤ</li><li><b>,</b> ᐥ</li><li><b>.</b> ᑦ</li><li><b>!</b> ᖤ</li><li><b>'</b> ᖦ</li>
+        </ul>
+    </div>
+
+    <script>
+        const encryptionMap = {
+            'A': 'ᐊ', 'B': 'ᐱ', 'C': 'ᐳ', 'D': 'ᑕ', 'E': 'ᑎ', 'F': 'ᑐ', 'G': 'ᑳ', 'H': 'ᑭ', 'I': 'ᑯ', 'J': 'ᖀ',
+            'K': 'ᖂ', 'L': 'ᖄ', 'M': 'ᕒ', 'N': 'ᐹ', 'O': 'ᐯ', 'P': 'ᐴ', 'Q': 'ᐶ', 'R': 'ᒫ', 'S': 'ᒦ', 'T': 'ᒨ',
+            'U': 'ᒪ', 'V': 'ᒥ', 'W': 'ᒧ', 'X': 'ᓇ', 'Y': 'ᓂ', 'Z': 'ᓄ',
+            'a': 'ᕿ', 'b': 'ᖁ', 'c': 'ᖃ', 'd': 'ᒐ', 'e': 'ᒋ', 'f': 'ᒍ', 'g': 'ᔮ', 'h': 'ᔨ', 'i': 'ᔪ', 'j': 'ᓈ',
+            'k': 'ᓃ', 'l': 'ᓅ', 'm': 'ᖎ', 'n': 'ᖒ', 'o': 'ᖠ', 'p': 'ᑌ', 'q': 'ᒉ', 'r': 'ᒌ', 's': 'ᒎ', 't': 'ᔅ',
+            'u': 'ᓰ', 'v': 'ᓲ', 'w': 'ᓴ', 'x': 'ᓯ', 'y': 'ᓱ', 'z': 'ᑰ',
+            '0': 'ᑑ', '1': 'ᐦ', '2': 'ᐖ', '3': 'ᐠ', '4': 'ᐟ', '5': 'ᐡ', '6': 'ᐢ', '7': 'ᐣ', '8': 'ᐨ', '9': 'ᐤ',
+            ',': 'ᐥ', '.': 'ᑦ', '!': 'ᖤ', "'": 'ᖦ'
+        };
+
+        const decryptionMap = {};
+        for (const key in encryptionMap) {
+            decryptionMap[encryptionMap[key]] = key;
+        }
+
+        function encryptText() {
+            const input = document.getElementById('mainInput').value;
+            let output = '';
+            for (let i = 0; i < input.length; i++) {
+                const char = input[i];
+                output += encryptionMap[char] || char;
+            }
+            document.getElementById('mainOutput').value = output;
+        }
+
+        function decryptText() {
+            const input = document.getElementById('mainInput').value;
+            const symbols = Object.keys(decryptionMap).sort((a, b) => b.length - a.length);
+            const regex = new RegExp(symbols.join('|'), 'g');
+            
+            const output = input.replace(regex, (match) => {
+                return decryptionMap[match] || match;
+            });
+            document.getElementById('mainOutput').value = output;
+        }
+    </script>
+
+</body>
+</html>

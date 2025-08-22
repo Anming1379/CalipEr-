@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫雷 - 桉</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --main-color: #34495e;
+            --secondary-color: #3498db;
+            --cell-bg: #ccc;
+            --cell-border-light: #fff;
+            --cell-border-dark: #777;
+            --revealed-bg: #e0e0e0;
+            --font-color: #333;
+            --game-info-color: #555;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--main-color);
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #controls {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        #difficulty-select {
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 8px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        #info-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--main-color);
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        #game-board {
+            display: grid;
+            border: 2px solid var(--cell-border-dark);
+            background-color: var(--cell-bg);
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: var(--cell-bg);
+            border: 2px solid;
+            border-color: var(--cell-border-light) var(--cell-border-dark) var(--cell-border-dark) var(--cell-border-light);
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s ease;
+        }
+
+        .cell:hover:not(.revealed) {
+            background-color: #dcdcdc;
+            transform: scale(1.05);
+        }
+
+        .cell.revealed {
+            background-color: var(--revealed-bg);
+            border-color: #999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cell.mine {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .cell.flag {
+            background-color: #f1c40f;
+            color: white;
+        }
+
+        .number-1 { color: #2980b9; }
+        .number-2 { color: #27ae60; }
+        .number-3 { color: #c0392b; }
+        .number-4 { color: #8e44ad; }
+        .number-5 { color: #e67e22; }
+        .number-6 { color: #16a085; }
+        .number-7 { color: #2c3e50; }
+        .number-8 { color: #7f8c8d; }
+
+        #game-info {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 15px;
+            color: var(--main-color);
+            text-align: center;
+        }
+
+        #best-time-info {
+            margin-top: 10px;
+            font-size: 1em;
+            color: var(--game-info-color);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>扫 雷</h1>
+    <div id="controls">
+        <label for="difficulty-select">选择难度：</label>
+        <select id="difficulty-select">
+            <option value="easy">初级 (9x9, 10雷)</option>
+            <option value="medium">中级 (16x16, 40雷)</option>
+            <option value="hard">高级 (16x30, 99雷)</option>
+        </select>
+        <button onclick="startGame()">重新开始</button>
+    </div>
+
+    <div id="info-bar">
+        <span>地雷数: <span id="mine-count">0</span></span>
+        <span>时间: <span id="timer">0.00</span>秒</span>
+    </div>
+
+    <div id="game-board"></div>
+    <div id="game-info"></div>
+    <div id="best-time-info"></div>
+
+    <script>
+        const DIFFICULTIES = {
+            easy: { rows: 9, cols: 9, mines: 10 },
+            medium: { rows: 16, cols: 16, mines: 40 },
+            hard: { rows: 16, cols: 30, mines: 99 }
+        };
+        
+        let ROWS, COLS, MINE_COUNT;
+        let board = [];
+        let cells = [];
+        let isGameOver = false;
+        let flagsPlaced = 0;
+        let firstClick = true;
+        let animationFrameId;
+        let startTime;
+
+        const gameBoard = document.getElementById('game-board');
+        const gameInfo = document.getElementById('game-info');
+        const mineCountSpan = document.getElementById('mine-count');
+        const timerSpan = document.getElementById('timer');
+        const difficultySelect = document.getElementById('difficulty-select');
+        const bestTimeInfo = document.getElementById('best-time-info');
+
+        function startGame() {
+            const difficulty = difficultySelect.value;
+            ROWS = DIFFICULTIES[difficulty].rows;
+            COLS = DIFFICULTIES[difficulty].cols;
+            MINE_COUNT = DIFFICULTIES[difficulty].mines;
+
+            gameBoard.innerHTML = '';
+            board = [];
+            cells = [];
+            isGameOver = false;
+            flagsPlaced = 0;
+            firstClick = true;
+            
+            cancelAnimationFrame(animationFrameId);
+            timerSpan.textContent = '0.00';
+            
+            gameBoard.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+            gameBoard.style.width = `${COLS * 30 + 2 * COLS}px`;
+            mineCountSpan.textContent = MINE_COUNT;
+            gameInfo.textContent = '';
+            
+            loadBestTime(difficulty);
+            createBoard();
+            addEventListeners();
+        }
+
+        function createBoard() {
+            for (let i = 0; i < ROWS; i++) {
+                board[i] = [];
+                for (let j = 0; j < COLS; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    gameBoard.appendChild(cell);
+                    cells.push(cell);
+                    board[i][j] = {
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        neighborMines: 0
+                    };
+                }
+            }
+        }
+
+        function placeMines(firstRow, firstCol) {
+            let minesPlaced = 0;
+            while (minesPlaced < MINE_COUNT) {
+                const randomRow = Math.floor(Math.random() * ROWS);
+                const randomCol = Math.floor(Math.random() * COLS);
+                
+                const isSafe = (Math.abs(randomRow - firstRow) <= 1 && Math.abs(randomCol - firstCol) <= 1);
+                
+                if (!board[randomRow][randomCol].isMine && !isSafe) {
+                    board[randomRow][randomCol].isMine = true;
+                    minesPlaced++;
+                }
+            }
+        }
+
+        function calculateNumbers() {
+            for (let i = 0; i < ROWS; i++) {
+                for (let j = 0; j < COLS; j++) {
+                    if (!board[i][j].isMine) {
+                        let mineCount = 0;
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const newRow = i + dx;
+                                const newCol = j + dy;
+                                if (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS) {
+                                    if (board[newRow][newCol].isMine) {
+                                        mineCount++;
+                                    }
+                                }
+                            }
+                        }
+                        board[i][j].neighborMines = mineCount;
+                    }
+                }
+            }
+        }
+
+        function addEventListeners() {
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleLeftClick);
+                cell.addEventListener('contextmenu', handleRightClick);
+            });
+        }
+
+        function handleLeftClick(event) {
+            if (isGameOver) return;
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            const cell = board[row][col];
+
+            if (cell.isRevealed || cell.isFlagged) return;
+
+            if (firstClick) {
+                placeMines(row, col);
+                calculateNumbers();
+                firstClick = false;
+                startTimer();
+            }
+
+            if (cell.isMine) {
+                gameOver(false);
+            } else {
+                revealCell(row, col);
+                checkWin();
+            }
+        }
+
+        function handleRightClick(event) {
+            event.preventDefault();
+            if (isGameOver || firstClick) return;
+            const cellElement = event.target;
+            const row = parseInt(cellElement.dataset.row);
+            const col = parseInt(cellElement.dataset.col);
+            const cell = board[row][col];
+
+            if (cell.isRevealed) return;
+
+            if (cell.isFlagged) {
+                cell.isFlagged = false;
+                cellElement.classList.remove('flag');
+                flagsPlaced--;
+            } else if (flagsPlaced < MINE_COUNT) {
+                cell.isFlagged = true;
+                cellElement.classList.add('flag');
+                flagsPlaced++;
+            }
+            mineCountSpan.textContent = MINE_COUNT - flagsPlaced;
+        }
+
+        function revealCell(row, col) {
+            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+            const cell = board[row][col];
+            const cellElement = cells.find(c => parseInt(c.dataset.row) === row && parseInt(c.dataset.col) === col);
+
+            if (cell.isRevealed || cell.isFlagged) return;
+            cell.isRevealed = true;
+            cellElement.classList.add('revealed');
+
+            if (cell.neighborMines > 0) {
+                cellElement.textContent = cell.neighborMines;
+                cellElement.classList.add(`number-${cell.neighborMines}`);
+            } else {
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        revealCell(row + dx, col + dy);
+                    }
+                }
+            }
+        }
+
+        function gameOver(win) {
+            isGameOver = true;
+            cancelAnimationFrame(animationFrameId);
+            const finalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+            if (win) {
+                gameInfo.textContent = `恭喜你，你赢了！🎉 用时: ${finalTime}秒`;
+                checkAndSaveBestTime(finalTime);
+            } else {
+                gameInfo.textContent = '踩到地雷了，游戏结束！💣';
+                revealAllMines();
+            }
+            cells.forEach(cell => {
+                cell.removeEventListener('click', handleLeftClick);
+                cell.removeEventListener('contextmenu', handleRightClick);
+            });
+        }
+
+        function revealAllMines() {
+            cells.forEach(cellElement => {
+                const row = parseInt(cellElement.dataset.row);
+                const col = parseInt(cellElement.dataset.col);
+                if (board[row][col].isMine) {
+                    cellElement.classList.add('mine');
+                    cellElement.textContent = '💣';
+                }
+            });
+        }
+
+        function checkWin() {
+            const revealedCount = cells.filter(cell => board[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)].isRevealed).length;
+            if (revealedCount === ROWS * COLS - MINE_COUNT) {
+                gameOver(true);
+            }
+        }
+        
+        function updateTimer() {
+            const currentTime = ((performance.now() - startTime) / 1000).toFixed(2);
+            timerSpan.textContent = currentTime;
+            animationFrameId = requestAnimationFrame(updateTimer);
+        }
+
+        function startTimer() {
+            startTime = performance.now();
+            updateTimer();
+        }
+
+        function loadBestTime(difficulty) {
+            const bestTime = localStorage.getItem(`bestTime-${difficulty}`);
+            if (bestTime) {
+                bestTimeInfo.textContent = `本模式最快纪录: ${bestTime}秒`;
+            } else {
+                bestTimeInfo.textContent = `本模式暂无纪录`;
+            }
+        }
+
+        function checkAndSaveBestTime(finalTime) {
+            const difficulty = difficultySelect.value;
+            const bestTime = localStorage.getItem(`bestTime-${difficulty}`);
+            if (!bestTime || parseFloat(finalTime) < parseFloat(bestTime)) {
+                localStorage.setItem(`bestTime-${difficulty}`, finalTime);
+                bestTimeInfo.textContent = `恭喜！你创造了新纪录: ${finalTime}秒`;
+            }
+        }
+        
+        difficultySelect.addEventListener('change', startGame);
+        window.onload = startGame;
+    </script>
+</body>
+</html>
