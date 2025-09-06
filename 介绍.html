@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalipEr 介绍</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            color: #2a2b5f;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7b7b9d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        h2 {
+            color: #2a2b5f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6c5ce7;
+        }
+        
+        h3 {
+            color: #4a4b9f;
+            margin: 25px 0 15px;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .icon-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .icon-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.2);
+        }
+        
+        .icon-example {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #6c5ce7;
+        }
+        
+        .icon-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .icon-class {
+            font-family: 'Fira Code', monospace;
+            background: #e4e8f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .code-block {
+            background: #2a2b5f;
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .code-comment {
+            color: #7b7b9d;
+        }
+        
+        .usage-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .example {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #6c5ce7;
+        }
+        
+        .example-icon {
+            margin-right: 10px;
+            color: #6c5ce7;
+        }
+        
+        .customization {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .custom-item {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .size-example {
+            font-size: 3rem;
+            color: #6c5ce7;
+            margin: 15px 0;
+        }
+        
+        .color-example {
+            font-size: 2.5rem;
+            margin: 15px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #6c5ce7;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #4a4b9f;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7b7b9d;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .icon-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CalipEr 介绍</h1>
+            <p class="subtitle">这里有关于这个网站的所有信息</p>
+        </header>
+        
+        <div class="section">
+            <h2>CalipEr 是什么?</h2>
+            <p>CalipEr 是由桉铭使用AI开发的一个小工具网站! 里面有一些好玩的工具和网页小游戏!</p>
+            
+            <div class="code-block">
+                <span class="code-comment">&lt;!-- 内容完全由AI生成, 桉只复制修改和网站的建设 --&gt;</span><br>
+                &lt; 欢迎使用CalipEr!!! &gt;
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>CalipEr 怎么玩?</h2>
+            <p>你可以直接点开任意卡片游玩! </p>
+            
+            <div class="usage-examples">
+                <div class="example">
+                    <h3><i class="fas fa-check-circle example-icon"></i>CalipEr</h3>
+                    <p><i class="fas fa-check example-icon"></i> 100%Free</p>
+                    <p><i class="fas fa-check example-icon"></i> 开源代码</p>
+                    <p><i class="fas fa-check example-icon"></i> 简单好用</p>
+                </div>
+                
+                <div class="example">
+                    <h3><i class="fas fa-download example-icon"></i>CalipEr 的源代码</h3>
+                    <p>源代码在Github, 你也可以直接将CalipEr的代码下载到本地游玩! </p>
+                    <a href="https://github.com/Anming1379/CalipEr-" class="btn" target="_blank"><i class="fas fa-download"></i> 前往Github</a>
+                </div>
+                <div class="example">
+                    <h3><i class="fas fa-info-circle example-icon"></i>关于 CalipEr</h3>
+                    <p>CalipEr 的作者是桉铭</p>
+                    <p><i class="fas fa-exclamation-triangle example-icon"></i> 不要买卖它</p>
+                    <p><i class="fas fa-clock example-icon"></i> 桉随缘更新</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>下一步行动</h2>
+            <p>好了就是这样, 你也可以来找桉一起玩! 祝你玩的开心!</p>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="https://anmingcat.pages.dev" class="btn" target="_blank">
+                    <i class="fas fa-search"></i> 了解一下作者?
+                </a>
+                <a href="https://caliper.pages.dev" class="btn" target="_blank" style="background: #4a4b9f;">
+                    <i class="fas fa-book"></i> 开始使用CalipEr!
+                </a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>CalipEr介绍 by AnmingCat</p>
+            <p>-内容由AI生成-</p>
+        </footer>
+    </div>
+</body>
+</html>
