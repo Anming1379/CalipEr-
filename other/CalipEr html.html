@@ -355,60 +355,7 @@
                 }
             }
         });
-        
-        // 设置初始代码
-        editor.setValue(`<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>示例网页</title>
-    <style>
-        body {
-            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #4ec9b0;
-            border-bottom: 2px solid #4ec9b0;
-            padding-bottom: 10px;
-        }
-        .container {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        button {
-            background: #4ec9b0;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <h1>欢迎使用HTML编辑器</h1>
-    <p>这是一个简单的示例，在左侧编辑代码，右侧实时预览效果。</p>
     
-    <div class="container">
-        <h2>功能示例</h2>
-        <p>编辑器支持HTML、CSS和JavaScript代码高亮。</p>
-        <button onclick="alert('Hello World!')">点击我</button>
-    </div>
-    
-    <script>
-        console.log('示例脚本已加载');
-    <\/script>
-</body>
-</html>`);
-        
         // 获取DOM元素
         const filenameInput = document.getElementById('filenameInput');
         const previewFrame = document.getElementById('previewFrame');
