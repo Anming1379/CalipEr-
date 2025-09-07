@@ -1,100 +1,660 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalipEr HTML</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>HTML代码编辑器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/theme/dracula.min.css">
     <style>
+        /* 添加自定义字体 */
         @font-face {
             font-family: 'MapleMono';
-            src: url('MapleMonoNormal-Light.woff2') format('woff2');
+            src: url('MapleMono-CN-Regular.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
+            font-display: swap;
         }
-        #code {
-            font-family: 'MapleMono', monospace;
-            text-align: left; /* 左对齐 */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        #filename {
-            background-color: transparent;
+        
+        body {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header {
+            background: #2d2d2d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4ec9b0;
+        }
+        
+        .logo-icon {
+            font-size: 1.8rem;
+            color: #4ec9b0;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #4ec9b0;
+            color: #1e1e1e;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #3cb39e;
+        }
+        
+        .btn i {
+            font-size: 1rem;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border-right: 1px solid #444;
+            transition: width 0.3s ease;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #252526;
+            border-bottom: 1px solid #444;
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filename-input {
+            background: transparent;
+            border: 1px solid #4ec9b0;
+            color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: 200px;
+            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .editor-container {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .CodeMirror {
+            height: 100%;
+            font-size: 16px;
+            line-height: 1.6;
+            font-family: 'MapleMono', 'Courier New', monospace;
+        }
+        
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .preview-container {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            background: white;
+        }
+        
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .search-box {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-input {
+            background: #1e1e1e;
+            border: 1px solid #4ec9b0;
+            color: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 250px;
+            margin-bottom: 8px;
+            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .search-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .toggle-editor {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            background: #4ec9b0;
+            color: #1e1e1e;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            border: 2px solid #1e1e1e;
+        }
+        
+        .collapsed .editor-panel {
+            width: 0;
+            flex: 0;
+            overflow: hidden;
+        }
+        
+        .collapsed .toggle-editor i {
+            transform: rotate(180deg);
+        }
+        
+        .footer {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #444;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .status {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4ec9b0;
+            color: #1e1e1e;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .cm-highlight {
+            background: #ffeb3b;
+            color: #000;
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-code"></i></div>
+            <h1>Code Note</h1>
+        </div>
+        <div class="toolbar">
+            <button class="btn" id="downloadBtn"><i class="fas fa-download"></i> </button>
+            <button class="btn" id="undoBtn"><i class="fas fa-undo"></i> </button>
+            <button class="btn" id="redoBtn"><i class="fas fa-redo"></i> </button>
+            <button class="btn" id="searchBtn"><i class="fas fa-search"></i> </button>
+            <button class="btn" id="collapseBtn"><i class="fas fa-chevron-left"></i> </button>
+        </div>
+    </div>
+    
+    <div class="main-container" id="mainContainer">
+        <div class="editor-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fas fa-file-code"></i>
+                    <input type="text" class="filename-input" id="filenameInput" value="index.html">
+                </div>
+            </div>
+            <div class="editor-container">
+                <textarea id="codeEditor"></textarea>
+            </div>
+            
+            <div class="search-box" id="searchBox">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索...">
+                <div class="search-options">
+                    <label>
+                        <input type="checkbox" id="matchCase"> 区分大小写
+                    </label>
+                    <span id="matchCount">0 个匹配</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="toggle-editor" id="toggleEditor">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        
+        <div class="preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fas fa-eye"></i>
+                    <span>预览</span>
+                </div>
+            </div>
+            <div class="preview-container">
+                <iframe class="preview-frame" id="previewFrame"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="status">
+            <span>行: <span id="lineCount">1</span></span>
+            <span>列: <span id="colCount">1</span></span>
+            <span>语言: HTML</span>
+        </div>
+        <div class="copyright">
+            HTML代码编辑器 | by AnmingCat
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">文件已下载</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    
+    <script>
+        // 初始化代码编辑器
+        const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            mode: 'htmlmixed',
+            theme: 'dracula',
+            lineNumbers: true,
+            autoCloseTags: true,
+            matchTags: {bothTags: true},
+            autoCloseBrackets: true,
+            lineWrapping: true,
+            indentUnit: 4,
+            indentWithTabs: true,
+            extraKeys: {
+                'Ctrl-S': function(instance) { downloadHTML(); },
+                'Ctrl-Z': function(instance) { instance.undo(); },
+                'Ctrl-Y': function(instance) { instance.redo(); },
+                'Ctrl-F': function(instance) { toggleSearch(); },
+                'Ctrl-D': function(instance) { 
+                    document.getElementById('filenameInput').focus(); 
+                    document.getElementById('filenameInput').select();
+                }
+            }
+        });
+        
+        // 设置初始代码
+        editor.setValue(`<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>示例网页</title>
+    <style>
+        body {
+            font-family: 'MapleMono', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #4ec9b0;
+            border-bottom: 2px solid #4ec9b0;
+            padding-bottom: 10px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4ec9b0;
             color: white;
             border: none;
-            outline: none;
-            width: auto;
-        }
-        /* 调整按钮文字大小 */
-        .button-text {
-            font-size: 0.8rem;
-        }
-        @media (max-width: 768px) {
-            /* 针对手机屏幕的样式调整 */
-            .md\:w-1\/2 {
-                width: 100%;
-            }
-            .md\:h-full {
-                height: 50%;
-            }
-            .md\:flex-row {
-                flex-direction: column;
-            }
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white">
-    <div class="flex flex-col md:flex-row h-screen">
-        <!-- 左侧代码区域 -->
-        <div class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col">
-            <!-- 按钮栏 -->
-            <div class="flex items-center justify-between p-2 bg-gray-800 border-b border-gray-700">
-                <span class="text-gray-400"> </span>
-                <input id="filename" type="text" value="code" />
-                <span class="text-gray-400"> </span>
-                <div class="flex space-x-4"> <!-- 增加按钮间距 -->
-                    <button onclick="copyCode()" class="p-2 text-white bg-gray-700 hover:bg-gray-600 rounded">
-                        <span class="button-text">Copy</span>
-                    </button>
-                    <button onclick="downloadCode()" class="p-2 text-white bg-gray-700 hover:bg-gray-600 rounded">
-                        <span class="button-text">Download</span>
-                    </button>
-                </div>
-            </div>
-            <!-- 代码输入框 -->
-            <textarea id="code" class="flex-1 p-4 bg-gray-800 text-white outline-none resize-none" placeholder="输入 HTML 代码..." oninput="updatePreview()"></textarea>
-        </div>
-        
-        <!-- 右侧预览窗口 -->
-        <iframe id="preview" class="w-full md:w-1/2 h-1/2 md:h-full bg-white"></iframe>
+<body>
+    <h1>欢迎使用HTML编辑器</h1>
+    <p>这是一个简单的示例，在左侧编辑代码，右侧实时预览效果。</p>
+    
+    <div class="container">
+        <h2>功能示例</h2>
+        <p>编辑器支持HTML、CSS和JavaScript代码高亮。</p>
+        <button onclick="alert('Hello World!')">点击我</button>
     </div>
-
+    
     <script>
+        console.log('示例脚本已加载');
+    <\/script>
+</body>
+</html>`);
+        
+        // 获取DOM元素
+        const filenameInput = document.getElementById('filenameInput');
+        const previewFrame = document.getElementById('previewFrame');
+        const toggleEditor = document.getElementById('toggleEditor');
+        const mainContainer = document.getElementById('mainContainer');
+        const searchBox = document.getElementById('searchBox');
+        const searchInput = document.getElementById('searchInput');
+        const lineCount = document.getElementById('lineCount');
+        const colCount = document.getElementById('colCount');
+        const notification = document.getElementById('notification');
+        const collapseBtn = document.getElementById('collapseBtn');
+        const matchCount = document.getElementById('matchCount');
+        const matchCase = document.getElementById('matchCase');
+        
+        // 存储高亮标记
+        let highlights = [];
+        let debounceTimer;
+
+        // 更新预览函数
         function updatePreview() {
-            const code = document.getElementById("code").value;
-            const previewFrame = document.getElementById("preview");
+            const code = editor.getValue();
             const preview = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            
             preview.open();
             preview.write(code);
             preview.close();
         }
         
-        function copyCode() {
-            const code = document.getElementById("code");
-            code.select();
-            document.execCommand("copy");
-            alert("Code copied!");
-        }
+        // 初始化预览
+        updatePreview();
         
-        function downloadCode() {
-            const code = document.getElementById("code").value;
-            const filename = document.getElementById("filename").value.trim() || "code";
-            const blob = new Blob([code], { type: "text/html" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = filename + ".html";
+        // 监听编辑器变化
+        editor.on('change', () => {
+            updatePreview();
+            const cursor = editor.getCursor();
+            lineCount.textContent = cursor.line + 1;
+            colCount.textContent = cursor.ch + 1;
+            
+            // 如果搜索框有内容，重新高亮
+            if (searchInput.value.trim() !== '') {
+                highlightMatches(searchInput.value.trim());
+            }
+        });
+        
+        // 光标位置变化
+        editor.on('cursorActivity', () => {
+            const cursor = editor.getCursor();
+            lineCount.textContent = cursor.line + 1;
+            colCount.textContent = cursor.ch + 1;
+        });
+        
+        // 下载功能
+        function downloadHTML() {
+            const code = editor.getValue();
+            const filename = filenameInput.value.endsWith('.html') ? 
+                filenameInput.value : filenameInput.value + '.html';
+            
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showNotification('文件已下载: ' + filename);
         }
+        
+        document.getElementById('downloadBtn').addEventListener('click', downloadHTML);
+        
+        // 撤销功能
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            editor.undo();
+            showNotification('撤销操作');
+        });
+        
+        // 重做功能
+        document.getElementById('redoBtn').addEventListener('click', () => {
+            editor.redo();
+            showNotification('重做操作');
+        });
+        
+        // 搜索功能
+        function toggleSearch() {
+            searchBox.style.display = searchBox.style.display === 'block' ? 'none' : 'block';
+            if (searchBox.style.display === 'block') {
+                searchInput.focus();
+                searchInput.select();
+                
+                // 如果搜索框有内容，立即高亮
+                if (searchInput.value.trim() !== '') {
+                    highlightMatches(searchInput.value.trim());
+                }
+            } else {
+                // 关闭搜索框时清除高亮
+                clearHighlights();
+            }
+        }
+        
+        document.getElementById('searchBtn').addEventListener('click', toggleSearch);
+        
+        // 监听搜索输入 - 实时高亮
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                const query = searchInput.value.trim();
+                
+                if (query === '') {
+                    clearHighlights();
+                    matchCount.textContent = '0 个匹配';
+                    return;
+                }
+                
+                highlightMatches(query);
+            }, 300);
+        });
+        
+        // 监听区分大小写选项变化
+        matchCase.addEventListener('change', function() {
+            if (searchInput.value.trim() !== '') {
+                highlightMatches(searchInput.value.trim());
+            }
+        });
+        
+        // 高亮匹配文本函数
+        function highlightMatches(query) {
+            clearHighlights();
+            
+            const caseSensitive = matchCase.checked;
+            const content = editor.getValue();
+            
+            // 使用正则表达式查找所有匹配项
+            const regex = caseSensitive ? 
+                new RegExp(escapeRegExp(query), 'g') : 
+                new RegExp(escapeRegExp(query), 'gi');
+            
+            let match;
+            let count = 0;
+            
+            while ((match = regex.exec(content)) !== null) {
+                const fromIndex = match.index;
+                const toIndex = fromIndex + match[0].length;
+                
+                // 计算行和列
+                const fromPos = indexToPos(fromIndex);
+                const toPos = indexToPos(toIndex);
+                
+                // 添加高亮
+                const highlight = editor.markText(
+                    fromPos,
+                    toPos,
+                    { className: 'cm-highlight' }
+                );
+                
+                highlights.push(highlight);
+                count++;
+                
+                // 滚动到第一个匹配项
+                if (count === 1) {
+                    editor.scrollIntoView(fromPos);
+                }
+            }
+            
+            // 更新匹配计数
+            matchCount.textContent = count + ' 个匹配';
+            
+            // 显示通知
+            if (count > 0) {
+                showNotification('找到 ' + count + ' 个匹配项');
+            } else {
+                showNotification('未找到匹配文本', true);
+            }
+        }
+        
+        // 辅助函数：转义正则表达式特殊字符
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        // 辅助函数：将索引转换为行和列
+        function indexToPos(index) {
+            const content = editor.getValue();
+            let line = 0;
+            let ch = 0;
+            
+            for (let i = 0; i < index; i++) {
+                if (content[i] === '\n') {
+                    line++;
+                    ch = 0;
+                } else {
+                    ch++;
+                }
+            }
+            
+            return { line: line, ch: ch };
+        }
+        
+        // 清除高亮
+        function clearHighlights() {
+            highlights.forEach(highlight => highlight.clear());
+            highlights = [];
+        }
+        
+        // 搜索框按键事件
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Escape') {
+                searchBox.style.display = 'none';
+                clearHighlights();
+                matchCount.textContent = '0 个匹配';
+            }
+        });
+        
+        // 收起/展开代码栏
+        function toggleEditorPanel() {
+            mainContainer.classList.toggle('collapsed');
+            if (mainContainer.classList.contains('collapsed')) {
+                collapseBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            } else {
+                collapseBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            }
+        }
+        
+        toggleEditor.addEventListener('click', toggleEditorPanel);
+        collapseBtn.addEventListener('click', toggleEditorPanel);
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.background = isError ? '#e06c75' : '#4ec9b0';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 初始化光标位置显示
+        const cursor = editor.getCursor();
+        lineCount.textContent = cursor.line + 1;
+        colCount.textContent = cursor.ch + 1;
     </script>
 </body>
 </html>

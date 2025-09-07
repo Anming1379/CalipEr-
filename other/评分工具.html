@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评分工具</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        :root {
+            --primary-color: #6a89cc;
+            --primary-hover: #4a69bd;
+            --secondary-color: #e66767;
+            --secondary-hover: #d64a4a;
+            --bg-light: #f5f6fa;
+            --bg-card: #ffffff;
+            --text-dark: #333333;
+            --text-gray: #7f8c8d;
+            --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-light: #e0e0e0;
+            --accent-color: #f9a825;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow-subtle);
+            width: 95%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .description {
+            color: var(--text-gray);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            background-color: var(--bg-light);
+            border-radius: 15px;
+            padding: 5px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background-color: transparent;
+            color: var(--text-gray);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .tab-button.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--accent-color);
+            border-radius: 12px;
+            z-index: 0;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .tab-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-button.active::before {
+            transform: translateX(0);
+        }
+        
+        .tab-button.active span {
+            color: white;
+        }
+        
+        #textInput {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            transition: all 0.3s;
+            resize: none;
+            margin-top: 10px;
+        }
+
+        #textInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(106, 137, 204, 0.2);
+        }
+
+        .file-upload-wrapper {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .file-upload-label {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .file-upload-label:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.02);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .file-name {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-style: italic;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .image-preview {
+            margin-top: 15px;
+            max-width: 100%;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            object-fit: contain;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .score-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .score-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .clear-button {
+            background-color: var(--secondary-color);
+        }
+        
+        .clear-button:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-container {
+            margin-top: 25px;
+            padding: 25px;
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-label {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-gray);
+        }
+        
+        .result-value {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            transition: all 0.5s ease-out;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .result-value.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--border-light);
+            border-radius: 5px;
+            margin-top: 15px;
+            height: 8px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-image: linear-gradient(to right, #a29bfe, var(--primary-color));
+            border-radius: 5px;
+            transition: width 0.4s ease-out;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .tab-buttons {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 8px;
+            }
+            .tab-button {
+                flex-basis: calc(50% - 4px);
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .score-button, .clear-button {
+                flex-basis: 100%;
+                margin-bottom: 10px;
+            }
+            .result-value {
+                font-size: 3.5rem;
+            }
+            .image-preview img {
+                max-height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>评分工具</h1>
+        <p class="description">
+            输入文本或图片以评分,仅供娱乐~
+        </p>
+        
+        <div class="tab-buttons">
+            <button id="textTab" class="tab-button active" onclick="switchTab('text')">
+                <span>文本</span>
+            </button>
+            <button id="imageTab" class="tab-button" onclick="switchTab('image')">
+                <span>图片</span>
+            </button>
+        </div>
+        
+        <div id="textInputArea">
+            <textarea id="textInput" placeholder="输入文本..."></textarea>
+        </div>
+        
+        <div id="imageUploadArea" style="display: none;">
+            <div class="file-upload-wrapper">
+                <label for="fileInput" class="file-upload-label">
+                    选择图片文件
+                </label>
+                <input type="file" id="fileInput" accept="image/*">
+                <div class="file-name" id="fileName">未选择任何文件</div>
+            </div>
+            <div class="image-preview" id="imagePreview">
+                <img id="previewImage" src="" alt="Image Preview">
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="score-button" onclick="calculateScore()">🌟 开始评分</button>
+            <button class="clear-button" onclick="clearAll()">🧹 清除</button>
+        </div>
+        
+        <div class="result-container">
+            <div class="result-label">分数</div>
+            <div id="result" class="result-value">--</div>
+        </div>
+
+        <div class="progress-bar-container" id="progressBarContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+    </div>
+
+    <script>
+        // --- Helper Functions ---
+        function stringToNumber(str) {
+            let hash = 0;
+            if (str.length === 0) return hash;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash) % 101;
+        }
+
+        // --- Tab Switching Logic ---
+        const textTab = document.getElementById('textTab');
+        const imageTab = document.getElementById('imageTab');
+        const textInputArea = document.getElementById('textInputArea');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const resultElement = document.getElementById('result');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        let currentTab = 'text';
+
+        function switchTab(tabType) {
+            if (currentTab === tabType) return;
+
+            if (tabType === 'text') {
+                textTab.classList.add('active');
+                imageTab.classList.remove('active');
+                textInputArea.style.display = 'block';
+                imageUploadArea.style.display = 'none';
+                fileInput.value = ''; 
+                fileNameDisplay.textContent = '未选择任何文件';
+                imagePreview.style.display = 'none';
+            } else {
+                imageTab.classList.add('active');
+                textTab.classList.remove('active');
+                imageUploadArea.style.display = 'block';
+                textInputArea.style.display = 'none';
+                document.getElementById('textInput').value = '';
+            }
+            currentTab = tabType;
+            resultElement.textContent = '--';
+            resultElement.classList.remove('visible');
+            progressBarContainer.style.display = 'none';
+        }
+
+        // --- Scoring Logic ---
+        function calculateScore() {
+            let inputToHash = '';
+            let validInput = false;
+
+            resultElement.classList.remove('visible');
+            progressBarContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            if (currentTab === 'text') {
+                const inputText = document.getElementById('textInput').value;
+                if (inputText.trim() !== '') {
+                    inputToHash = inputText;
+                    validInput = true;
+                } else {
+                    alert('请输入文本内容再评分哦！');
+                }
+            } else {
+                if (fileInput.files && fileInput.files.length > 0) {
+                    inputToHash = fileInput.files[0].name;
+                    validInput = true;
+                } else {
+                    alert('请先选择一张图片再评分哦！');
+                }
+            }
+
+            if (!validInput) {
+                progressBarContainer.style.display = 'none';
+                return;
+            }
+            
+            setTimeout(() => {
+                const number = stringToNumber(inputToHash);
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    resultElement.textContent = number;
+                    resultElement.classList.add('visible');
+                    progressBarContainer.style.display = 'none';
+                }, 400);
+            }, 100);
+        }
+        
+        // --- Clear Function ---
+        function clearAll() {
+            document.getElementById('textInput').value = '';
+            fileInput.value = ''; 
+            fileNameDisplay.textContent = '未选择任何文件';
+            imagePreview.style.display = 'none';
+            previewImage.src = '';
+            resultElement.textContent = '--';
+            resultElement.classList.remove('visible');
+            progressBarContainer.style.display = 'none';
+            if (currentTab === 'image') {
+                switchTab('text'); 
+            }
+        }
+        
+        // --- File Name Display and Image Preview ---
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                fileNameDisplay.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileNameDisplay.textContent = '未选择任何文件';
+                imagePreview.style.display = 'none';
+                previewImage.src = '';
+            }
+        });
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('text');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片水印</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --border-radius: 12px;
+            --box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #495057;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .app-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .app-description {
+            color: #6c757d;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: none;
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-bottom: none;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background-color: rgba(67, 97, 238, 0.05);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .position-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .position-btn {
+            padding: 10px;
+            text-align: center;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .position-btn:hover, .position-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        #preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .preview-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fff;
+            transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        
+        .preview-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .preview-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .preview-actions button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-filename {
+            font-size: 0.9rem;
+            color: #6c757d;
+            word-break: break-all;
+        }
+        
+        .preview-placeholder {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            grid-column: 1 / -1;
+        }
+        
+        .preview-placeholder i {
+            font-size: 3rem;
+            color: #adb5bd;
+            margin-bottom: 15px;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 20px;
+        }
+        
+        .spinner-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .tooltip-icon {
+            color: var(--primary-color);
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .slider-value span {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        /* 自定义字体定义 */
+        @font-face {
+            font-family: 'Tangerine-Bold';
+            src: url('ziti/Tangerine-Bold.ttf') format('truetype');
+        }
+        
+        @font-face {
+            font-family: 'SourceHanSerifCN';
+            src: url('ziti/SourceHanSerifCN-Regular-1.otf') format('opentype');
+        }
+        
+        @font-face {
+            font-family: 'Sansilk';
+            src: url('ziti/Sansilk.otf') format('opentype');
+        }
+        
+        @font-face {
+            font-family: 'LTPerfume';
+            src: url('ziti/LTPerfume-2.ttf') format('truetype');
+        }
+        
+        @font-face {
+            font-family: 'JustFontFenYuan';
+            src: url('ziti/JustFontFenYuanZiTi-2.ttf') format('truetype');
+        }
+        
+        @font-face {
+            font-family: 'HongLeiXingShu';
+            src: url('ziti/HongLeiXingShuJianTi-2.otf') format('opentype');
+        }
+        
+        @font-face {
+            font-family: 'Coolvetica';
+            src: url('ziti/Coolvetica Rg.otf') format('opentype');
+        }
+        
+        @font-face {
+            font-family: 'Alucky';
+            src: url('ziti/Alucky.otf') format('opentype');
+        }
+        
+        @media (max-width: 768px) {
+            #preview-container {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .position-presets {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .position-presets {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1 class="app-title"><i class="fas fa-water me-2"></i>图片水印工具</h1>
+            <p class="app-description">批量处理图片, 为图片添加水印</p>
+        </header>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-upload me-2"></i>上传图片
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h5>拖放图片到这里</h5>
+                            <p class="text-muted">或点击选择文件</p>
+                            <span class="badge bg-primary">支持 JPG, PNG, WEBP 等格式</span>
+                            <input type="file" class="d-none" id="imageInput" multiple accept="image/*">
+                        </div>
+                        <div class="mt-3 d-flex justify-content-between align-items-center">
+                            <span id="fileCount">已选择 0 张图片</span>
+                            <button class="btn btn-sm btn-outline-danger" id="clearFiles" disabled>
+                                <i class="fas fa-trash me-1"></i>清空列表
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 实时预览卡片移动到上传卡片下方 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-image me-2"></i>实时预览</span>
+                        <span class="badge bg-primary" id="previewCount">0 张图片</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="preview-container">
+                            <div class="preview-placeholder">
+                                <i class="fas fa-images"></i>
+                                <p>上传图片后，水印预览将在这里实时显示</p>
+                                <small class="text-muted">修改上方设置可立即看到效果变化</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h me-2"></i>水印设置
+                    </div>
+                    <div class="card-body">
+                        <form id="watermarkForm">
+                            <div class="mb-3">
+                                <label for="watermarkText" class="form-label">水印文字 <i class="fas fa-question-circle tooltip-icon" title="点击输入文本"></i></label>
+                                <input type="text" class="form-control" id="watermarkText" value="Sample">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fontFamily" class="form-label">字体选择</label>
+                                <select class="form-select" id="fontFamily">
+                                    <option value="Arial">Arial</option>
+                                    <option value="Tangerine-Bold">Tangerine Bold</option>
+                                    <option value="SourceHanSerifCN">Source Han Serif CN</option>
+                                    <option value="Sansilk">Sansilk</option>
+                                    <option value="LTPerfume">LT Perfume</option>
+                                    <option value="JustFontFenYuan">JustFont 粉圆</option>
+                                    <option value="HongLeiXingShu">鸿雷行书简</option>
+                                    <option value="Coolvetica">Coolvetica</option>
+                                    <option value="Alucky">Alucky</option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3 slider-container">
+                                        <label for="fontSizeRange" class="form-label">字体大小</label>
+                                        <input type="range" class="form-range" id="fontSizeRange" min="10" max="250" value="50">
+                                        <div class="slider-value">
+                                            <small>10px</small>
+                                            <span id="fontSizeValue">50px</span>
+                                            <small>250px</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="textColor" class="form-label">文字颜色</label>
+                                        <input type="color" class="form-control form-control-color" id="textColor" value="#6262fe" title="选择文字颜色">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3 slider-container">
+                                        <label for="opacityRange" class="form-label">不透明度</label>
+                                        <input type="range" class="form-range" id="opacityRange" min="0" max="100" value="35">
+                                        <div class="slider-value">
+                                            <small>透明</small>
+                                            <span id="opacityValue">35%</span>
+                                            <small>不透明</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3 slider-container">
+                                        <label for="rotationRange" class="form-label">旋转角度</label>
+                                        <input type="range" class="form-range" id="rotationRange" min="0" max="360" value="0">
+                                        <div class="slider-value">
+                                            <small>0°</small>
+                                            <span id="rotationValue">0°</span>
+                                            <small>360°</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">位置设置</label>
+                                
+                                <div class="slider-container">
+                                    <label for="posX" class="form-label">水平位置</label>
+                                    <input type="range" class="form-range" id="posX" min="0" max="100" value="10">
+                                    <div class="slider-value">
+                                        <small></small>
+                                        <span id="posXValue">10%</span>
+                                        <small></small>
+                                    </div>
+                                </div>
+                                
+                                <div class="slider-container">
+                                    <label for="posY" class="form-label">垂直位置</label>
+                                    <input type="range" class="form-range" id="posY" min="0" max="100" value="10">
+                                    <div class="slider-value">
+                                        <small></small>
+                                        <span id="posYValue">10%</span>
+                                        <small></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-download me-2"></i>输出选项
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="format" class="form-label">输出格式</label>
+                            <select class="form-select" id="format">
+                                <option value="original">保持原格式</option>
+                                <option value="png">PNG</option>
+                                <option value="jpeg">JPEG</option>
+                                <option value="webp">WEBP</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="qualityContainer" style="display: none;">
+                            <label for="quality" class="form-label">JPEG 质量</label>
+                            <input type="range" class="form-range" id="quality" min="1" max="100" value="100">
+                            <div class="slider-value">
+                                <small>低质量</small>
+                                <span id="qualityValue">100%</span>
+                                <small>高质量</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success" onclick="downloadAll()">
+                                    <i class="fas fa-download me-2"></i>下载所有
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="downloadZip()">
+                                    <i class="fas fa-file-archive me-2"></i>打包ZIP
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="progress" class="mt-4" style="display: none;">
+                            <div class="d-flex justify-content-between">
+                                <span>处理进度</span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">水印工具</strong>
+                <small>刚刚</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                操作成功完成！
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        // 全局变量
+        let images = [];
+        let watermarkedBlobs = [];
+        let toast = null;
+        let updateTimeout = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化Toast
+            toast = new bootstrap.Toast(document.getElementById('liveToast'));
+            
+            // 设置事件监听
+            setupEventListeners();
+            
+            // 初始化滑块显示值
+            updateSliderValues();
+            
+            // 格式选择变化事件
+            document.getElementById('format').addEventListener('change', function() {
+                document.getElementById('qualityContainer').style.display = 
+                    this.value === 'jpeg' ? 'block' : 'none';
+                applyWatermarkDebounced();
+            });
+            
+            // 字体选择变化事件
+            document.getElementById('fontFamily').addEventListener('change', applyWatermarkDebounced);
+        });
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 文件输入更改
+            document.getElementById('imageInput').addEventListener('change', function(e) {
+                handleFiles(e.target.files);
+            });
+            
+            // 拖放区域事件
+            const dropZone = document.getElementById('dropZone');
+            dropZone.addEventListener('click', () => document.getElementById('imageInput').click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+            
+            // 清空文件按钮
+            document.getElementById('clearFiles').addEventListener('click', clearFiles);
+            
+            // 滑块事件 - 实时更新水印
+            document.getElementById('fontSizeRange').addEventListener('input', updateFontSizeValue);
+            document.getElementById('opacityRange').addEventListener('input', updateOpacityValue);
+            document.getElementById('rotationRange').addEventListener('input', updateRotationValue);
+            document.getElementById('quality').addEventListener('input', updateQualityValue);
+            document.getElementById('posX').addEventListener('input', updatePosXValue);
+            document.getElementById('posY').addEventListener('input', updatePosYValue);
+            
+            // 文本和颜色输入事件 - 实时更新水印
+            document.getElementById('watermarkText').addEventListener('input', applyWatermarkDebounced);
+            document.getElementById('textColor').addEventListener('input', applyWatermarkDebounced);
+            
+            // 位置预设按钮
+            document.querySelectorAll('.position-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const [x, y] = this.getAttribute('data-pos').split(',');
+                    document.getElementById('posX').value = x;
+                    document.getElementById('posY').value = y;
+                    
+                    updatePosXValue();
+                    updatePosYValue();
+                    applyWatermarkDebounced();
+                });
+            });
+            
+            // 滑块变化时应用水印
+            document.getElementById('fontSizeRange').addEventListener('change', applyWatermarkDebounced);
+            document.getElementById('opacityRange').addEventListener('change', applyWatermarkDebounced);
+            document.getElementById('rotationRange').addEventListener('change', applyWatermarkDebounced);
+            document.getElementById('posX').addEventListener('change', applyWatermarkDebounced);
+            document.getElementById('posY').addEventListener('change', applyWatermarkDebounced);
+            document.getElementById('quality').addEventListener('change', applyWatermarkDebounced);
+        }
+        
+        // 防抖函数，避免频繁更新
+        function applyWatermarkDebounced() {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(applyWatermark, 300);
+        }
+        
+        // 更新滑块显示值
+        function updateSliderValues() {
+            updateFontSizeValue();
+            updateOpacityValue();
+            updateRotationValue();
+            updateQualityValue();
+            updatePosXValue();
+            updatePosYValue();
+        }
+        
+        function updateFontSizeValue() {
+            const value = document.getElementById('fontSizeRange').value;
+            document.getElementById('fontSizeValue').textContent = `${value}px`;
+            applyWatermarkDebounced();
+        }
+        
+        function updateOpacityValue() {
+            const value = document.getElementById('opacityRange').value;
+            document.getElementById('opacityValue').textContent = `${value}%`;
+            applyWatermarkDebounced();
+        }
+        
+        function updateRotationValue() {
+            const value = document.getElementById('rotationRange').value;
+            document.getElementById('rotationValue').textContent = `${value}°`;
+            applyWatermarkDebounced();
+        }
+        
+        function updateQualityValue() {
+            const value = document.getElementById('quality').value;
+            document.getElementById('qualityValue').textContent = `${value}%`;
+            applyWatermarkDebounced();
+        }
+        
+        function updatePosXValue() {
+            const value = document.getElementById('posX').value;
+            document.getElementById('posXValue').textContent = `${value}%`;
+            applyWatermarkDebounced();
+        }
+        
+        function updatePosYValue() {
+            const value = document.getElementById('posY').value;
+            document.getElementById('posYValue').textContent = `${value}%`;
+            applyWatermarkDebounced();
+        }
+        
+        // 处理文件选择
+        function handleFiles(files) {
+            const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            
+            if (imageFiles.length === 0) {
+                showToast('请选择有效的图片文件', 'error');
+                return;
+            }
+            
+            images = [...images, ...imageFiles];
+            updateFileCount();
+            document.getElementById('clearFiles').disabled = false;
+            
+            showToast(`已添加 ${imageFiles.length} 张图片`, 'success');
+            
+            // 实时应用水印
+            applyWatermark();
+        }
+        
+        // 清空文件列表
+        function clearFiles() {
+            images = [];
+            watermarkedBlobs = [];
+            updateFileCount();
+            document.getElementById('clearFiles').disabled = true;
+            document.getElementById('preview-container').innerHTML = `
+                <div class="preview-placeholder">
+                    <i class="fas fa-images"></i>
+                    <p>上传图片后，水印预览将在这里实时显示</p>
+                    <small class="text-muted">修改上方设置可立即看到效果变化</small>
+                </div>
+            `;
+            document.getElementById('previewCount').textContent = '0 张图片';
+            showToast('已清空图片列表', 'info');
+        }
+        
+        // 更新文件计数
+        function updateFileCount() {
+            document.getElementById('fileCount').textContent = `已选择 ${images.length} 张图片`;
+        }
+        
+        // 显示Toast消息
+        function showToast(message, type = 'info') {
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            
+            const toastHeader = document.querySelector('#liveToast .toast-header');
+            toastHeader.className = 'toast-header';
+            
+            switch(type) {
+                case 'success':
+                    toastHeader.classList.add('bg-success', 'text-white');
+                    break;
+                case 'error':
+                    toastHeader.classList.add('bg-danger', 'text-white');
+                    break;
+                case 'warning':
+                    toastHeader.classList.add('bg-warning');
+                    break;
+                default:
+                    toastHeader.classList.add('bg-info', 'text-white');
+            }
+            
+            toast.show();
+        }
+        
+        // 应用水印
+        async function applyWatermark() {
+            if (images.length === 0) {
+                return;
+            }
+            
+            const text = document.getElementById('watermarkText').value;
+            if (!text.trim()) {
+                return;
+            }
+            
+            const fontSize = parseInt(document.getElementById('fontSizeRange').value);
+            const color = document.getElementById('textColor').value;
+            const opacity = parseInt(document.getElementById('opacityRange').value) / 100;
+            const rotation = parseInt(document.getElementById('rotationRange').value);
+            const posX = parseInt(document.getElementById('posX').value);
+            const posY = parseInt(document.getElementById('posY').value);
+            const fontFamily = document.getElementById('fontFamily').value;
+            
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = '';
+            watermarkedBlobs = [];
+            
+            // 显示进度条
+            const progress = document.getElementById('progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = document.getElementById('progressPercent');
+            progress.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.setAttribute('aria-valuenow', 0);
+            progressPercent.textContent = '0%';
+            
+            const total = images.length;
+            let processed = 0;
+            
+            for (let i = 0; i < images.length; i++) {
+                const file = images[i];
+                try {
+                    const img = await loadImage(file);
+                    
+                    // 计算水印位置（百分比）
+                    const x = (posX / 100) * img.width;
+                    const y = (posY / 100) * img.height;
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 绘制原始图片
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // 设置水印样式
+                    ctx.font = `bold ${fontSize}px ${fontFamily}, Arial`;
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = opacity;
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "top";
+                    
+                    // 应用旋转
+                    if (rotation !== 0) {
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate(rotation * Math.PI / 180);
+                        ctx.fillText(text, 0, 0);
+                        ctx.restore();
+                    } else {
+                        ctx.fillText(text, x, y);
+                    }
+                    
+                    // 创建预览
+                    const previewImg = document.createElement('img');
+                    previewImg.src = canvas.toDataURL('image/png');
+                    previewImg.alt = `预览: ${file.name}`;
+                    previewImg.className = 'img-fluid';
+                    
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    
+                    // 添加预览操作按钮
+                    const actions = document.createElement('div');
+                    actions.className = 'preview-actions';
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'btn btn-sm btn-success';
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                    downloadBtn.onclick = () => downloadSingle(canvas, file.name);
+                    actions.appendChild(downloadBtn);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-sm btn-danger';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteBtn.onclick = () => removeImage(i);
+                    actions.appendChild(deleteBtn);
+                    
+                    div.appendChild(actions);
+                    div.appendChild(previewImg);
+                    
+                    const fileName = document.createElement('p');
+                    fileName.className = 'preview-filename mt-2';
+                    fileName.textContent = file.name;
+                    div.appendChild(fileName);
+                    
+                    previewContainer.appendChild(div);
+                    
+                    // 确定输出格式
+                    const format = document.getElementById('format').value;
+                    let mimeType = 'image/png';
+                    let quality = 1.0;
+                    
+                    if (format === 'jpeg') {
+                        mimeType = 'image/jpeg';
+                        quality = parseInt(document.getElementById('quality').value) / 100;
+                    } else if (format === 'webp') {
+                        mimeType = 'image/webp';
+                    } else if (format === 'original' && file.type !== '') {
+                        mimeType = file.type;
+                    }
+                    
+                    // 转换为Blob
+                    const blob = await new Promise(resolve => {
+                        if (mimeType === 'image/jpeg') {
+                            canvas.toBlob(resolve, mimeType, quality);
+                        } else {
+                            canvas.toBlob(resolve, mimeType);
+                        }
+                    });
+                    
+                    watermarkedBlobs.push({ blob, name: file.name });
+                    
+                    // 更新进度
+                    processed++;
+                    const percent = Math.round((processed / total) * 100);
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.setAttribute('aria-valuenow', percent);
+                    progressPercent.textContent = `${percent}%`;
+                    
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    showToast(`处理图片 ${file.name} 时出错`, 'error');
+                }
+            }
+            
+            // 隐藏进度条
+            setTimeout(() => {
+                progress.style.display = 'none';
+            }, 1000);
+            
+            // 更新预览计数
+            document.getElementById('previewCount').textContent = `${images.length} 张图片`;
+        }
+        
+        // 加载图片
+        function loadImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = URL.createObjectURL(file);
+            });
+        }
+        
+        // 下载单个图片
+        function downloadSingle(canvas, originalName) {
+            const format = document.getElementById('format').value;
+            let extension = 'png';
+            let mimeType = 'image/png';
+            let quality = 1.0;
+            
+            if (format === 'jpeg') {
+                extension = 'jpg';
+                mimeType = 'image/jpeg';
+                quality = parseInt(document.getElementById('quality').value) / 100;
+            } else if (format === 'webp') {
+                extension = 'webp';
+                mimeType = 'image/webp';
+            } else if (format === 'original') {
+                const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
+                if (extMatch) extension = extMatch[1].toLowerCase();
+                if (extension === 'jpg' || extension === 'jpeg') {
+                    mimeType = 'image/jpeg';
+                    quality = parseInt(document.getElementById('quality').value) / 100;
+                }
+            }
+            
+            const name = originalName.replace(/\.[^/.]+$/, '');
+            
+            canvas.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `watermarked_${name}.${extension}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast('图片下载成功', 'success');
+            }, mimeType, quality);
+        }
+        
+        // 移除图片
+        function removeImage(index) {
+            images.splice(index, 1);
+            updateFileCount();
+            
+            if (images.length === 0) {
+                document.getElementById('clearFiles').disabled = true;
+            }
+            
+            // 重新应用水印以更新预览
+            applyWatermark();
+            
+            showToast('已移除图片', 'info');
+        }
+        
+        // 下载所有图片
+        function downloadAll() {
+            if (watermarkedBlobs.length === 0) {
+                showToast('请先上传图片生成水印', 'warning');
+                return;
+            }
+            
+            watermarkedBlobs.forEach(({ blob, name }) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `watermarked_${name}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            showToast(`已下载 ${watermarkedBlobs.length} 张图片`, 'success');
+        }
+        
+        // 下载为ZIP
+        async function downloadZip() {
+            if (watermarkedBlobs.length === 0) {
+                showToast('请先上传图片生成水印', 'warning');
+                return;
+            }
+            
+            const zip = new JSZip();
+            watermarkedBlobs.forEach(({ blob, name }) => {
+                zip.file(`watermarked_${name}`, blob);
+            });
+            
+            const content = await zip.generateAsync({ type: 'blob' });
+            saveAs(content, 'watermarked_images.zip');
+            showToast('ZIP文件已生成并开始下载', 'success');
+        }
+    </script>
+</body>
+</html>
